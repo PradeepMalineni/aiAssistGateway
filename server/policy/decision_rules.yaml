@@ -1,0 +1,10 @@
+weights:
+  exposure:
+    public: { apigee: 3, datapower: 1 }
+    internal: { apigee: 1, datapower: 3 }
+  data_classification:
+    pci: { apigee: 1, datapower: 3 }
+    none: { apigee: 2, datapower: 2 }
+  payload.p99_kb:
+    "<=256": { apigee: 2, datapower: 2 }
+    ">256":  { apigee: 1, datapower: 2 }

@@ -1,0 +1,13 @@
+controls:
+  fault-handling: { id: POL-ERR-001, description: Standardized fault response }
+  schema-validate-req: { id: POL-SCHEMA-REQ-010, description: Validate requests }
+  schema-validate-res: { id: POL-SCHEMA-RES-011, description: Validate responses }
+  spike-arrest: { id: POL-TRAFFIC-100, description: Burst control }
+  oauth-jwt: { id: POL-AUTH-200, description: Verify JWT/OAuth }
+  tls12+: { id: POL-TLS-300, description: Enforce TLS 1.2+ }
+  hsts: { id: POL-TLS-310, description: Add HSTS header }
+  mtls: { id: POL-MTLS-320, description: Mutual TLS }
+  jwt-optional: { id: POL-AUTH-201, description: Optional JWT (internal) }
+  dlp-tokenize: { id: POL-DLP-400, description: Tokenize PAN→CRN }
+  field-mask: { id: POL-DLP-410, description: Mask sensitive fields }
+  no-logging-sensitive: { id: POL-LOG-420, description: Drop sensitive fields from logs }

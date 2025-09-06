@@ -1,0 +1,41 @@
+name: devx-gateway-ci
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+jobs:
+  docs-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python scripts/devx_indexer.py --repo-url ${{ github.server_url }}/${{ github.repository }} --branch ${{ github.ref_name }} --docs-dir docs --out-csv index.csv --out-prompt prompt.md --llm Y
+      - uses: actions/upload-artifact@v4
+        with:
+          name: devx-index
+          path: |
+            index.csv
+            prompt.md
+  dryrun-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python - <<'PY'
+import json
+from server.logic import intake, decision_engine, guardrails, builder, gate
+spec=intake.load_oas('examples/apis/petstore/openapi.yaml')
+traits=intake.extract_traits(spec)
+dec=decision_engine.decide(traits)
+plan=guardrails.plan_from_traits(traits)
+res=builder.generate_bundle(spec, plan, '.out', dec)
+print(json.dumps(gate.evaluate(plan, res['applied_controls']), indent=2))
+PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gateway-out
+          path: .out
