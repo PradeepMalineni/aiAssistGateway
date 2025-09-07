@@ -1,0 +1,89 @@
+{
+  "commonSimpleInstructions": [
+    "Return a short summary of the chosen gateway and where artifacts were written.",
+    "If required context is missing (public/internal, PII/PCI), ask the user inline and then write a sidecar gateway.hints.yaml before continuing."
+  ],
+  "displayMessageAtStartUp": "***Gateway assistant started...***",
+  "agentInstructions": [
+    {
+      "fileName": "apis",
+      "operation": "ws/search",
+      "step": 1,
+      "instructions": [
+        "Find OpenAPI files in the workspace matching **/openapi.(yaml|yml|json). Return the first match path as STEP1.firstMatch."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        2
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 2,
+      "instructions": [
+        "MCP:analyze_oas { \"oasPath\": \"${STEP1.firstMatch}\", \"useAI\": true }",
+        "If the analysis cannot determine exposure (public vs internal) or PCI/PII, ask the user:",
+        "  - Is this API externally exposed to partners or the public? (yes/no)",
+        "  - Does the API handle cardholder data (PCI) or sensitive PII? (none/pii/pci)",
+        "  - Expected traffic per app per minute? (integer)",
+        "After getting answers, write a file named gateway.hints.yaml next to the OAS with the sidecar format."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        3
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 3,
+      "instructions": [
+        "If gateway.hints.yaml was created or updated, re-run:",
+        "MCP:analyze_oas { \"oasPath\": \"${STEP1.firstMatch}\", \"useAI\": true }",
+        "Merge sidecar hints into traits: exposure, pci/pii, rate hint."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        4
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 4,
+      "instructions": [
+        "MCP:decide_gateway { \"traits\": ${STEP3.json}, \"useAI\": true }",
+        "Present the decision and rationale. Ask the user to confirm: 'Proceed to build the proxy with this gateway?'"
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        5
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 5,
+      "instructions": [
+        "MCP:synthesize_guardrails { \"traits\": ${STEP3.json}, \"useAI\": true }",
+        "Ensure required controls come ONLY from the policy catalog."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        6
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "file/apply",
+      "step": 6,
+      "instructions": [
+        "MCP:generate_bundle { \"oasPath\": \"${STEP1.firstMatch}\", \"decision\": ${STEP4.json}, \"plan\": ${STEP5.json}, \"outDir\": \".out\" }",
+        "MCP:opa_gate { \"plan\": ${STEP5.json}, \"appliedControls\": ${STEP6.json.applied_controls} }",
+        "If gate fails, show missing controls and stop. If pass, return the summary with links to .out/ files."
+      ],
+      "showResults": true
+    }
+  ]
+}
