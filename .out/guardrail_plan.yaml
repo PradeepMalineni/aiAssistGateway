@@ -1,0 +1,5 @@
+required_controls:
+- mtls
+- spike-arrest
+thresholds:
+  rate_limit_per_app_per_min: 1000

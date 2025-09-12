@@ -1,12 +1,19 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from .logic import intake, decision_engine, guardrails, builder, gate
-from .logic.utils import write_json
+from logic import intake, decision_engine, guardrails, builder, gate
+from logic.utils import write_json
 from pathlib import Path
 import yaml
+from pydantic import BaseModel
+from typing import Optional, List
+
 
 app = FastAPI(title='DevX Gateway Tools', version='1.0.0')
+
+class DiscoverReq(BaseModel):
+    workspaceRoot: str
+    globs: Optional[List[str]] = None
 
 class AnalyzeReq(BaseModel):
     oasPath: str
@@ -39,11 +46,11 @@ class AssistantReq(BaseModel):
     useAI: bool = True
     model: Optional[str] = None
 
-@app.post('/tools/discover_oas')
-def discover_oas(workspaceRoot: str, globs: Optional[List[str]] = None):
-    return intake.discover_oas(workspaceRoot, globs)
+@app.post('/discover_oas')
+def discover_oas(req: DiscoverReq):
+    return intake.discover_oas(req.workspaceRoot, req.globs)
 
-@app.post('/tools/analyze_oas')
+@app.post('/analyze_oas')
 def analyze_oas(req: AnalyzeReq):
     spec=intake.load_oas(req.oasPath)
     sidecar_path=Path(req.oasPath).with_name('gateway.hints.yaml')
@@ -51,24 +58,24 @@ def analyze_oas(req: AnalyzeReq):
     traits=intake.extract_traits(spec, sidecar)
     return traits
 
-@app.post('/tools/decide_gateway')
+@app.post('/decide_gateway')
 def decide_gateway(req: DecideReq):
     return decision_engine.decide(req.traits, model=req.model if req.useAI else None)
 
-@app.post('/tools/synthesize_guardrails')
+@app.post('/synthesize_guardrails')
 def synthesize_guardrails(req: ControlsReq):
     return guardrails.plan_from_traits(req.traits, use_llm=req.useAI, model=req.model)
 
-@app.post('/tools/generate_bundle')
+@app.post('/generate_bundle')
 def generate_bundle(req: BundleReq):
     spec=intake.load_oas(req.oasPath)
     return builder.generate_bundle(spec, req.plan, req.outDir, req.decision)
 
-@app.post('/tools/opa_gate')
+@app.post('/opa_gate')
 def opa_gate(req: GateReq):
     return gate.evaluate(req.plan, req.appliedControls)
 
-@app.post('/tools/run_gateway_assistant')
+@app.post('/run_gateway_assistant')
 def run_gateway_assistant(req: AssistantReq):
     spec=intake.load_oas(req.oasPath)
     sidecar_path=Path(req.oasPath).with_name('gateway.hints.yaml')

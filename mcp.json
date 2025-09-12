@@ -1,0 +1,15 @@
+{
+  "name": "devx-gateway-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for API Gateway Assistant (Apigee/DataPower).",
+  "entry_point": "server/mcp_server.py",
+  "tools": [
+    { "name": "discover_oas", "description": "Search repo for OpenAPI spec files." },
+    { "name": "analyze_oas", "description": "Parse OAS + hints.yaml and extract traits." },
+    { "name": "decide_gateway", "description": "Choose gateway (Apigee vs DataPower)." },
+    { "name": "synthesize_guardrails", "description": "Create security control plan." },
+    { "name": "generate_bundle", "description": "Build proxy bundle + artifacts." },
+    { "name": "opa_gate", "description": "Validate applied vs required controls." },
+    { "name": "run_gateway_assistant", "description": "Run end-to-end workflow in one call." }
+  ]
+}

@@ -1,0 +1,262 @@
+{
+  "info": {
+    "name": "DevX Gateway MCP Server",
+    "_postman_id": "b2e5a1b6-2e9b-4bb7-9a0c-aaa000111222",
+    "description": "Test suite for DevX Gateway Assistant MCP server",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Manifest",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/.well-known/mcp.json",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ".well-known",
+            "mcp.json"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Discover OAS (JSON body)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"workspaceRoot\":\".\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/discover_oas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "discover_oas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Discover OAS (query param)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tools/discover_oas?workspaceRoot=.",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "discover_oas"
+          ],
+          "query": [
+            {
+              "key": "workspaceRoot",
+              "value": "."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Analyze OAS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"oasPath\":\"{{oasPath}}\",\"useAI\":true}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/analyze_oas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "analyze_oas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Decide Gateway",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\":{{traits}},\"useAI\":true}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/decide_gateway",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "decide_gateway"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Synthesize Guardrails",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\":{{traits}},\"useAI\":true}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/synthesize_guardrails",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "synthesize_guardrails"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Generate Bundle",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"oasPath\":\"{{oasPath}}\",\"decision\":{{decision}},\"plan\":{{plan}},\"outDir\":\"{{outDir}}\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/generate_bundle",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "generate_bundle"
+          ]
+        }
+      }
+    },
+    {
+      "name": "OPA Gate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"plan\":{{plan}},\"appliedControls\":{{appliedControls}}}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/opa_gate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "opa_gate"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Run Gateway Assistant (one-shot)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"oasPath\":\"{{oasPath}}\",\"outDir\":\"{{outDir}}\",\"useAI\":true}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tools/run_gateway_assistant",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tools",
+            "run_gateway_assistant"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8765"
+    },
+    {
+      "key": "oasPath",
+      "value": "apis/payments/openapi.yaml"
+    },
+    {
+      "key": "outDir",
+      "value": ".out"
+    },
+    {
+      "key": "traits",
+      "value": "{\"summary\":{\"public\":true},\"data_signals\":{\"pci_suspected\":true}}"
+    },
+    {
+      "key": "decision",
+      "value": "{\"gateway\":\"apigee\"}"
+    },
+    {
+      "key": "plan",
+      "value": "{\"required_controls\":[\"mtls\",\"spike-arrest\"],\"thresholds\":{\"rate_limit_per_app_per_min\":600}}"
+    },
+    {
+      "key": "appliedControls",
+      "value": "[\"mtls\",\"spike-arrest\"]"
+    }
+  ]
+}
