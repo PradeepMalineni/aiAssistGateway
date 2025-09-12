@@ -1,0 +1,9 @@
+# Created/updated by DevX Q&A
+exposure: internal
+data_classification:
+  pii: true
+  pci: true
+traffic_profile:
+  suggested_rate_per_app_per_min: 600
+notes:
+  - internal PCI workload

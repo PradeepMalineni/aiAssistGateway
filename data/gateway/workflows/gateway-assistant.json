@@ -1,0 +1,83 @@
+{
+  "commonSimpleInstructions": [
+    "Return a short summary of the chosen gateway and where artifacts were written.",
+    "If required context is missing (public/internal, PII/PCI), ask inline and write gateway.hints.yaml before continuing."
+  ],
+  "displayMessageAtStartUp": "***Gateway assistant started...***",
+  "agentInstructions": [
+    {
+      "fileName": "apis",
+      "operation": "ws/search",
+      "step": 1,
+      "instructions": [
+        "Find OpenAPI files matching **/openapi.(yaml|yml|json). Return STEP1.firstMatch."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        2
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 2,
+      "instructions": [
+        "MCP:analyze_oas { \"oasPath\": \"${STEP1.firstMatch}\", \"useAI\": true }",
+        "If exposure/PII/PCI/rate cannot be inferred: ask user and write gateway.hints.yaml next to OAS."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        3
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 3,
+      "instructions": [
+        "If gateway.hints.yaml exists, merge and re-run MCP:analyze_oas { \"oasPath\": \"${STEP1.firstMatch}\", \"useAI\": true }"
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        4
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 4,
+      "instructions": [
+        "MCP:decide_gateway { \"traits\": ${STEP3.json}, \"useAI\": true }",
+        "Ask: Proceed to build with this gateway? (yes/no)"
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        5
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "validation/check",
+      "step": 5,
+      "instructions": [
+        "MCP:synthesize_guardrails { \"traits\": ${STEP3.json}, \"useAI\": true }",
+        "Ensure required controls come only from the policy catalog."
+      ],
+      "showResults": true,
+      "addResultsToStep": [
+        6
+      ]
+    },
+    {
+      "fileName": "gateway",
+      "operation": "file/apply",
+      "step": 6,
+      "instructions": [
+        "MCP:generate_bundle { \"oasPath\": \"${STEP1.firstMatch}\", \"decision\": ${STEP4.json}, \"plan\": ${STEP5.json}, \"outDir\": \".out\" }",
+        "MCP:opa_gate { \"plan\": ${STEP5.json}, \"appliedControls\": ${STEP6.json.applied_controls} }",
+        "If gate fails, show missing controls and stop. Else, return summary with .out/ links."
+      ],
+      "showResults": true
+    }
+  ]
+}

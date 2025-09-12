@@ -1,0 +1,19 @@
+openapi: 3.0.3
+info: { title: Payments API, version: 1.0.0 }
+paths:
+  /payments:
+    get: { responses: {'200': { description: ok }} }
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Payment' }
+      responses: {'201': { description: created }}
+components:
+  schemas:
+    Payment:
+      type: object
+      properties:
+        id: { type: string }
+        amount: { type: number }
+        card_pan: { type: string }

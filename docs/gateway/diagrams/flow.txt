@@ -1,0 +1,1 @@
+DEVELOPER → DevX → prompt.md → index.csv → workflow.json → MCP tools → .out/*
