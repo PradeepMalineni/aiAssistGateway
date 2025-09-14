@@ -1,1 +1,4 @@
-gateway-assistant,https://github.com/example/devx-gateway-enterprise,main,/data/gateway/workflows/gateway-assistant.json,Y,
+gateway-assistant,https://github.com/wftgitsas-CHIEF-TECH-OFC/devx-gateway-enterprise,main,/data/gateway/workflows/gateway-assistant.json,Y,
+decide-gateway,https://github.com/wftgitsas-CHIEF-TECH-OFC/devx-gateway-enterprise,main,/docs/gateway/index/prompt.md,N,
+analyze-oas,https://github.com/wftgitsas-CHIEF-TECH-OFC/devx-gateway-enterprise,main,/docs/gateway/nfr/security-controls.md,N,
+build-proxy,https://github.com/wftgitsas-CHIEF-TECH-OFC/devx-gateway-enterprise,main,/docs/gateway/workflows/gateway-assistant.md,Y,

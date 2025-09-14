@@ -1,1 +1,105 @@
-DEVELOPER → DevX → prompt.md → index.csv → workflow.json → MCP tools → .out/*
+DevX Gateway Assistant - Complete Flow
+
+=== ENTERPRISE INTEGRATION FLOW ===
+
+1. DEVELOPER QUERY
+   Developer asks in IDE: "Decide the right API gateway for my payments service"
+   ↓
+2. DEVX AGENT ROUTING
+   DevX Agent receives query → checks prompt.md → maps to "gateway-assistant"
+   ↓
+3. DOCUMENTATION LOOKUP
+   DevX Agent → index.csv → finds gateway-assistant entry → loads workflow.json
+   ↓
+4. WORKFLOW EXECUTION
+   DevX Agent executes 6-step workflow using MCP tools:
+   
+   STEP 1: DISCOVER OAS
+   ├── ws/search: Find OpenAPI files (**/openapi.(yaml|yml|json))
+   └── Return: STEP1.firstMatch (e.g., "apis/payments/openapi.yaml")
+   ↓
+   
+   STEP 2: ANALYZE OAS
+   ├── MCP:analyze_oas { "oasPath": "${STEP1.firstMatch}", "useAI": true }
+   ├── Extract traits: public/internal, PII/PCI, rate limits, etc.
+   └── If missing info: ask user, write gateway.hints.yaml
+   ↓
+   
+   STEP 3: VALIDATE HINTS
+   ├── If gateway.hints.yaml exists: merge with OAS
+   ├── Re-run MCP:analyze_oas with enhanced context
+   └── Return: Complete traits analysis
+   ↓
+   
+   STEP 4: DECIDE GATEWAY
+   ├── MCP:decide_gateway { "traits": ${STEP3.json}, "useAI": true }
+   ├── AI Decision: Apigee vs DataPower based on traits
+   └── Ask: "Proceed to build with this gateway? (yes/no)"
+   ↓
+   
+   STEP 5: SYNTHESIZE GUARDRAILS
+   ├── MCP:synthesize_guardrails { "traits": ${STEP3.json}, "useAI": true }
+   ├── Create security control plan: mtls, spike-arrest, oauth, etc.
+   └── Ensure controls from policy catalog only
+   ↓
+   
+   STEP 6: GENERATE BUNDLE & VALIDATE
+   ├── MCP:generate_bundle { "oasPath": "${STEP1.firstMatch}", "decision": ${STEP4.json}, "plan": ${STEP5.json}, "outDir": ".out" }
+   │   ├── Generate proxy templates (Apigee/DataPower)
+   │   ├── Apply security policies
+   │   └── Create deployment artifacts
+   ├── MCP:opa_gate { "plan": ${STEP5.json}, "appliedControls": ${STEP6.json.applied_controls} }
+   │   ├── Validate applied vs required controls
+   │   └── Pass/Fail policy check
+   └── If PASS: Return summary with .out/ links
+       If FAIL: Show missing controls and stop
+   ↓
+
+5. ARTIFACTS GENERATED
+   .out/
+   ├── summary.json (complete workflow results)
+   ├── proxy-bundle/ (gateway-specific artifacts)
+   ├── policies/ (security controls)
+   └── deployment/ (deployment configs)
+
+=== ALTERNATIVE FLOWS ===
+
+DIRECT MCP TOOL USAGE:
+Developer → IDE MCP Extension → Direct tool calls:
+├── discover_oas
+├── analyze_oas  
+├── decide_gateway
+├── synthesize_guardrails
+├── generate_bundle
+├── opa_gate
+└── run_gateway_assistant (one-shot)
+
+ONE-SHOT WORKFLOW:
+Developer → MCP:run_gateway_assistant → Complete end-to-end flow → .out/ artifacts
+
+=== MCP SERVER ARCHITECTURE ===
+
+MCP Server (port 8765)
+├── /.well-known/mcp.json (auto-discovery manifest)
+└── /tools/ (FastAPI endpoints)
+    ├── /discover_oas
+    ├── /analyze_oas
+    ├── /decide_gateway
+    ├── /synthesize_guardrails
+    ├── /generate_bundle
+    ├── /opa_gate
+    └── /run_gateway_assistant
+
+=== ENTERPRISE INTEGRATION POINTS ===
+
+Orchestra Version Automation Service:
+├── Reads: docs/gateway/index/prompt.md
+├── Reads: data/gateway/index.csv
+├── Executes: data/gateway/workflows/gateway-assistant.json
+└── Calls: MCP Server tools via HTTP
+
+DevX Extension (VS Code/Cursor):
+├── Receives: Developer queries
+├── Augments: With documentation context
+├── Routes: To appropriate MCP tools
+└── Returns: Custom responses with artifacts
