@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-mcp-server
+  namespace: agentic-space
+  labels:
+    app: gateway-mcp
+    service: devx-agent
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gateway-mcp
+  template:
+    metadata:
+      labels:
+        app: gateway-mcp
+        service: devx-agent
+    spec:
+      containers:
+      - name: gateway-mcp
+        image: wellsfargo/gateway-mcp:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENTERPRISE_MODE
+          value: "true"
+        - name: AUTHENTICATION_REQUIRED
+          value: "true"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8080"
+        - name: ARTIFACTS_BASE_PATH
+          value: "/tmp/gateway-artifacts"
+        - name: CORS_ORIGINS
+          value: "https://agentic-space.wellsfargo.com,https://devx-agent.wellsfargo.com"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: artifacts-volume
+          mountPath: /tmp/gateway-artifacts
+      volumes:
+      - name: artifacts-volume
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-mcp-service
+  namespace: agentic-space
+  labels:
+    app: gateway-mcp
+    service: devx-agent
+spec:
+  selector:
+    app: gateway-mcp
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway-mcp-ingress
+  namespace: agentic-space
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - agentic-space.wellsfargo.com
+    secretName: agentic-space-tls
+  rules:
+  - host: agentic-space.wellsfargo.com
+    http:
+      paths:
+      - path: /gateway-mcp
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway-mcp-service
+            port:
+              number: 8080
