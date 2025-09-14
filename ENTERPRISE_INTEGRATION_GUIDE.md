@@ -37,7 +37,7 @@ devx-gateway-enterprise/
 Contact your DevX Agent team with the following details:
 
 **Required Information:**
-- **Repo URL:** `https://github.com/wftgitsas-CHIEF-TECH-OFC/devx-gateway-enterprise`
+- **Repo URL:** `https://github.com/PradeepMalineni/aiAssistGateway`
 - **Branch:** `main`
 - **Prompt file path:** `/docs/gateway/index/prompt.md`
 - **Index file path:** `/data/gateway/index.csv`
